@@ -1,4 +1,4 @@
-import { ROOTDIR } from './constants.js'
+import { ROOTDIR } from '../constants.js'
 
 export const saveFile = (args) => {
     const {

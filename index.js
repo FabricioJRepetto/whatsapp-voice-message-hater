@@ -8,9 +8,9 @@ import wpjs from 'whatsapp-web.js';
 const { Client, LocalAuth } = wpjs;
 
 import { ASCII } from './constants.js'
-import { printMsg } from './printMessage.js';
-import { googleSTT } from './googleSpeechToText.js';
-import { saveFile } from './saveFiles.js';
+import { printMsg } from './src/printMessage.js';
+import { saveFile } from './src/saveFiles.js';
+import { googleSTT } from './src/microservices/googleSpeechToText.js';
 
 console.clear();
 console.log(ASCII);
