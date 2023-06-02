@@ -33,30 +33,42 @@ client.on('ready', () => {
 
 client.initialize();
 
-client.on('message', async message => {
-    // print Message
-    printMsg(message)
+client.on('message_create', async msg => {
+    if (msg.fromMe) {
+        // const contacts = await client.getContactById('5491156381802@c.us')
+        // console.log(contacts);
+        // console.log(contacts?.name);
+    }
+})
 
-    if (message.hasMedia) {
-        console.log('\x1b[37m ••• checking media ••• \x1b[0m');
-        const media = await message.downloadMedia();
+client.on('message', async msg => {
 
-        if (media && /audio\/ogg/g.test(media.mimetype)) {
-            // Guardar archivos
-            saveFile({
-                // type: 'all',
-                data: media.data,
-                details: message
-            })
+    if (!msg.isStatus) {
+        // print Message
+        const { name } = await client.getContactById('5491156381802@c.us')
+        printMsg(msg, name)
 
-            // Transcripción
-            const transcription = await googleSTT(media.data)
+        if (msg.hasMedia) {
+            console.log('\x1b[37m ••• checking media ••• \x1b[0m');
+            const media = await msg.downloadMedia();
 
-            if (transcription) {
-                message.reply(transcription);
-            }
+            if (media && /audio\/ogg/g.test(media.mimetype)) {
+                // Guardar archivos
+                saveFile({
+                    // type: 'all',
+                    data: media.data,
+                    details: msg
+                })
 
-            console.log('');
-        } else console.log('');
+                // Transcripción
+                const transcription = await googleSTT(media.data)
+
+                if (transcription) {
+                    msg.reply(transcription);
+                }
+
+                console.log('');
+            } else console.log('');
+        }
     }
 });

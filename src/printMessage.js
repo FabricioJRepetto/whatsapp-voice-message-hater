@@ -1,5 +1,4 @@
-export const printMsg = (message) => {
-    //: TODO show contact name?
+export const printMsg = (message, name) => {
     //: TODO print audiowave
 
     const {
@@ -18,7 +17,7 @@ export const printMsg = (message) => {
     }
 
     // print Message
-    console.log(`\x1b[36m▶ ${from} \x1b[0m
+    console.log(`\x1b[36m▶ ${name} (${from}) \x1b[0m
     ${body || types[type] || '-'}
     \x1b[90m ${new Date(timestamp * 1000).toLocaleTimeString()}${!body ? ', ' + type : ''} \x1b[0m`);
 }
