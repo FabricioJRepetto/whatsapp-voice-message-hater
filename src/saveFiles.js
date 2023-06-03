@@ -1,42 +1,67 @@
-import { ROOTDIR } from '../constants.js'
+import * as fs from 'fs';
 
-export const saveFile = (args) => {
-    const {
-        type,
-        data,
-        details: {
-            timestamp,
-            from
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const writeFile = (path, data) =>
+    new Promise((resolve, reject) =>
+        fs.writeFile(path, data, (err) => {
+            if (err) reject(err);
+            console.log('writen');
+            resolve();
+        })
+    );
+
+export const saveFile = async (args) => {
+    try {
+        const {
+            includeTxt,
+            data,
+            details: {
+                timestamp,
+                from
+            },
+        } = args;
+
+        let res = {
+            audioPath: '',
+            textPath: ''
         }
-    } = args;
 
-    if (!type) return
+        console.log('\x1b[37m ••• saving files ••• \x1b[0m');
 
-    console.log('\x1b[37m ••• saving files ••• \x1b[0m');
+        const time = new Date(timestamp * 1000).toISOString().slice(0, -5).replaceAll(':', '-').replace('T', '_')
+        const fileName = `${from.replace('@', '').replace('.', '')}-audio_${time}`
 
-    const time = new Date(timestamp * 1000).toISOString().slice(0, -5).replaceAll(':', '-').replace('T', '_')
-    const fileName = `${from} -audio_${time} `
+        // relative path
+        const path = `/media/${fileName}.ogg`;
 
-    // usar writeFileSync si hay errores
-    // usando writeFile se logea en consola, si no, no sale nada
-
-    if (type === 'all' || type === 'audio') {
         //_ .ogg
         const fileBuffer = Buffer.from(data, 'base64');
-        fs.writeFile(`${ROOTDIR}/${fileName}.ogg`, fileBuffer, (err) => {
-            if (err) {
-                console.log('\x1b[31m ❌ .ogg error \x1b[0m');
-                throw err
-            } else console.log('\x1b[32m ✔ .ogg done \x1b[0m');
-        });
+        await writeFile('./src' + path, fileBuffer);
 
-    } else if (type === 'all' || type === 'text') {
+        // absolute path
+        res.audioPath = `${__dirname}${path.replaceAll('/', '\\')}`
+
         //_ .txt
-        fs.writeFile(`${ROOTDIR}/${from}_media_base64_${time}.txt`, data, (err) => {
-            if (err) {
-                console.log('\x1b[31m ❌ .txt error \x1b[0m');
-                throw err
-            } else console.log('\x1b[32m ✔ .txt done \x1b[0m');
-        })
+        // if (includeTxt) {
+        //     const path = `${ROOTDIR}/${from}_media_base64_${time}.txt`
+
+        //     await writeFile(path, data, (err) => {
+        //         if (err) {
+        //             console.log('\x1b[31m ❌ .txt error \x1b[0m');
+        //             throw err
+        //         } else {
+        //             console.log('\x1b[32m ✔ .txt done \x1b[0m');
+        //             res.textPath = path
+        //         }
+        //     })
+        // }
+
+        return res
+    } catch (error) {
+        console.log(err);
+        return
     }
 }

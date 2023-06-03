@@ -1,12 +1,10 @@
 
 import speech from '@google-cloud/speech';
 
-import { } from 'dotenv/config'
-
 const client = new speech.SpeechClient();
 
 export const googleSTT = async (data) => {
-    console.log('\x1b[37m ••• trascribing audio ••• \x1b[0m');
+    console.log('\x1b[37m ••• trascripting audio (google) ••• \x1b[0m');
 
     const audio = {
         content: data,
@@ -28,6 +26,6 @@ export const googleSTT = async (data) => {
         .map(result => result.alternatives[0].transcript)
         .join('\n');
 
-    console.log(`\x1b[37m Audio: ${transcription} \x1b[0m`);
+    console.log(`\x1b[37m ${transcription} \x1b[0m`);
     return transcription
 }

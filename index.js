@@ -1,7 +1,4 @@
-import * as fs from 'fs';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { } from 'dotenv/config'
 
 import qrcode from 'qrcode-terminal';
 import wpjs from 'whatsapp-web.js';
@@ -11,10 +8,15 @@ import { ASCII } from './constants.js'
 import { printMsg } from './src/printMessage.js';
 import { saveFile } from './src/saveFiles.js';
 import { googleSTT } from './src/microservices/googleSpeechToText.js';
+import { leopardSTT } from './src/microservices/leopardSpeechToText.js';
+import { deleteFile } from './src/deleteFile.js';
+import { checkMedia } from './src/checkMedia.js';
+
+let TRANSCRIPT_MODE = 'google'
 
 console.clear();
 console.log(ASCII);
-console.log('\x1b[90m                        ••• Loggin in to Whatsapp •••\x1b[0m');
+console.log('\x1b[90m                                     ••• Loggin in to Whatsapp •••\x1b[0m');
 
 // RemoteAuth para guardar sesión en una DB externa
 const client = new Client({
@@ -28,47 +30,56 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('\x1b[32m                         📞 Whatsapp client ready \x1b[0m \n');
+    console.log('\x1b[32m                                       📞 Whatsapp client ready \x1b[0m \n');
 });
 
 client.initialize();
 
 client.on('message_create', async msg => {
     if (msg.fromMe) {
-        // const contacts = await client.getContactById('5491156381802@c.us')
-        // console.log(contacts);
-        // console.log(contacts?.name);
+        /^#/.test(msg.body) && console.log(`\x1b[92m> ${msg.body}\x1b[0m\n`);
+
+        if (/^#help/.test(msg.body)) {
+            client.sendMessage(msg.from,
+                '>> Transcript a quoted voice message: #quedice?\n>> Change transcription source: #setmode_[MODE]\nmodes:\n • google\n • leopard\n>> Check current mode: #mode'
+            );
+
+        } else if (/^#setmode_/.test(msg.body)) {
+            const mode = msg.body.split('_')[1]
+
+            if (mode === 'google') {
+                TRANSCRIPT_MODE = 'google'
+
+            } else if (mode === 'leopard') {
+                TRANSCRIPT_MODE = 'leopard'
+
+            } else {
+                client.sendMessage(msg.from, 'Invalid mode');
+            }
+        } else if (/^#mode/.test(msg.body)) {
+            client.sendMessage(msg.from, `Current transcription mode: ${TRANSCRIPT_MODE}`);
+
+        } else if (/^#quedice\?/i.test(msg.body)) {
+            msg.reply(`🤖 ya te digo...`)
+
+            if (msg.hasQuotedMsg) {
+                const original = await msg.getQuotedMessage()
+                original && checkMedia(original, TRANSCRIPT_MODE)
+
+            }
+        }
     }
 })
 
 client.on('message', async msg => {
-
-    if (!msg.isStatus) {
+    if (!msg.isStatus && !msg.fromMe) {
         // print Message
-        const { name } = await client.getContactById('5491156381802@c.us')
+        const { name } = await client.getContactById(msg.from)
         printMsg(msg, name)
 
         if (msg.hasMedia) {
-            console.log('\x1b[37m ••• checking media ••• \x1b[0m');
-            const media = await msg.downloadMedia();
-
-            if (media && /audio\/ogg/g.test(media.mimetype)) {
-                // Guardar archivos
-                saveFile({
-                    // type: 'all',
-                    data: media.data,
-                    details: msg
-                })
-
-                // Transcripción
-                const transcription = await googleSTT(media.data)
-
-                if (transcription) {
-                    msg.reply(transcription);
-                }
-
-                console.log('');
-            } else console.log('');
+            // check if media is an .ogg and trascript
+            checkMedia(msg, TRANSCRIPT_MODE)
         }
     }
 });

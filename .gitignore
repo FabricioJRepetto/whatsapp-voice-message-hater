@@ -17,6 +17,7 @@ dist-ssr
 .wwebjs_auth
 .wwebjs_cache
 serviceaccount.json
+media
 
 .vscode/*
 !.vscode/extensions.json
