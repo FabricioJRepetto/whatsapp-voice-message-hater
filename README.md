@@ -28,6 +28,12 @@
 
 ## Whatsapp voice messages interceptor and transcriptor
 
-Modify constants ROOTDIR to designate a new directory for file downloads (not currently needed).
+### On-chat bot commands
+- **#help**: Show all commands.
+- **#quedice?**: Transcript a quoted voice message.
+- **#mode**: Check current STT mode.
+- **#setmode_${MODE}**: Change STT mode. Modes: *google* - *leopard*  
 
-For google cloud speech-to-text, using credentials stored on a .json, PATH appointed on .env file.
+### Speech to text modes
+- Google STT mode (cloud service)
+- Leopard STT mode (local transcription)
